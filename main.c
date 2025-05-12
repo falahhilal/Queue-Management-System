@@ -9,7 +9,7 @@
 typedef enum { ID_CARD, BIRTH_CERT, DEATH_CERT } ServiceType;
 const char* serviceNames[] = { "ID Card", "Birth Certificate", "Death Certificate" };
 
-typedef struct {
+typedef struct {      //person 
     int id;
     int ticketNo;
     ServiceType service;
@@ -17,18 +17,18 @@ typedef struct {
     int isServed;
 } Person;
 
-typedef struct Node {
+typedef struct Node {        //for queue
     Person* person;
     struct Node* next;
 } Node;
 
-//queue for each counter
+//1 queue for each counter
 Node* queues[NUM_COUNTERS] = { NULL };
 pthread_mutex_t queueMutex[NUM_COUNTERS];
-pthread_cond_t queueCond[NUM_COUNTERS];
+pthread_cond_t queueCond[NUM_COUNTERS];     
 int ticketCounter = 0;
 
-void enqueue(Node** head, Person* p) {
+void enqueue(Node** head, Person* p) {          //adds person to a queue
     Node* newNode = malloc(sizeof(Node));
     newNode->person = p;
     newNode->next = NULL;
@@ -42,11 +42,11 @@ void enqueue(Node** head, Person* p) {
     temp->next = newNode;
 }
 
-Person* front(Node* head) {
+Person* front(Node* head) {                    //to get the next person in queue
     return head ? head->person : NULL;
 }
 
-void dequeue(Node** head) {
+void dequeue(Node** head) {                   //when service is done remove them from queue
     if (*head == NULL) return;
     Node* temp = *head;
     *head = (*head)->next;
@@ -55,7 +55,6 @@ void dequeue(Node** head) {
 
 void* personThread(void* arg) {
     Person* p = (Person*)arg;
-
     //give ticket and join queue
     pthread_mutex_lock(&queueMutex[p->service]);
     p->ticketNo = ticketCounter++;
@@ -67,7 +66,7 @@ void* personThread(void* arg) {
 
     //wait
     while (front(queues[p->service]) != p) {
-        pthread_cond_wait(&p->cond, &queueMutex[p->service]);
+        pthread_cond_wait(&p->cond, &queueMutex[p->service]);           //wait condition until person is at front
     }
 
     //at counter
@@ -83,7 +82,7 @@ void* personThread(void* arg) {
     dequeue(&queues[p->service]);
     //notify next person in the queue
     if (queues[p->service]) {
-        pthread_cond_signal(&queues[p->service]->person->cond);
+        pthread_cond_signal(&queues[p->service]->person->cond);       //informing the person in front 
     }
     pthread_mutex_unlock(&queueMutex[p->service]);
 
@@ -94,12 +93,12 @@ int main() {
     pthread_t people[NUM_PEOPLE];
     srand(time(NULL));
 
-    for (int i = 0; i < NUM_COUNTERS; i++) {
+    for (int i = 0; i < NUM_COUNTERS; i++) {           //initialization
         pthread_mutex_init(&queueMutex[i], NULL);
         pthread_cond_init(&queueCond[i], NULL);
     }
 
-    for (int i = 0; i < NUM_PEOPLE; i++) {
+    for (int i = 0; i < NUM_PEOPLE; i++) {           
         Person* p = malloc(sizeof(Person));
         p->id = i;
         p->service = rand() % NUM_COUNTERS;
@@ -107,11 +106,9 @@ int main() {
         sleep(1);
     }
 
-    for (int i = 0; i < NUM_PEOPLE; i++) {
+    for (int i = 0; i < NUM_PEOPLE; i++) {   //join all threads
         pthread_join(people[i], NULL);
     }
 
     return 0;
 }
-
-   

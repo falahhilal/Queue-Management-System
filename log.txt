@@ -1,0 +1,157 @@
+Person #0 requested ID Card with ticket #0
+Person #0 is being served at ID Card counter
+Person #1 requested Birth Certificate with ticket #1
+Person #1 is being served at Birth Certificate counter
+Person #1 requested Death Certificate with ticket #2
+Person #0 done at ID Card counter (Service Time: 1s)
+Person #1 is being served at Death Certificate counter
+Person #2 requested Birth Certificate with ticket #3
+Person #3 requested ID Card with ticket #4
+Person #1 done at Birth Certificate counter (Service Time: 2s)
+Person #2 is being served at Birth Certificate counter
+Person #3 is being served at ID Card counter
+Person #1 done at Death Certificate counter (Service Time: 2s)
+Person #4 requested Birth Certificate with ticket #5
+Person #5 requested Birth Certificate with ticket #6
+Person #2 done at Birth Certificate counter (Service Time: 2s)
+Person #4 is being served at Birth Certificate counter
+Person #4 requested ID Card with ticket #7
+Person #3 done at ID Card counter (Service Time: 2s)
+Person #4 is being served at ID Card counter
+Person #4 requested Death Certificate with ticket #8
+Person #4 is being served at Death Certificate counter
+Person #4 done at Birth Certificate counter (Service Time: 1s)
+Person #5 is being served at Birth Certificate counter
+Person #6 requested Birth Certificate with ticket #9
+Person #7 requested Birth Certificate with ticket #10
+Person #4 done at ID Card counter (Service Time: 2s)
+Person #4 done at Death Certificate counter (Service Time: 2s)
+Person #8 requested Birth Certificate with ticket #11
+Person #5 done at Birth Certificate counter (Service Time: 2s)
+Person #6 is being served at Birth Certificate counter
+Person #6 requested Death Certificate with ticket #12
+Person #6 is being served at Death Certificate counter
+Person #9 requested Death Certificate with ticket #13
+Person #6 done at Birth Certificate counter (Service Time: 1s)
+Person #7 is being served at Birth Certificate counter
+Person #10 requested Birth Certificate with ticket #14
+Person #6 done at Death Certificate counter (Service Time: 2s)
+Person #9 is being served at Death Certificate counter
+Person #11 requested ID Card with ticket #15
+Person #7 done at Birth Certificate counter (Service Time: 2s)
+Person #8 is being served at Birth Certificate counter
+Person #11 is being served at ID Card counter
+Person #12 requested Birth Certificate with ticket #16
+Person #13 requested ID Card with ticket #17
+Person #9 done at Death Certificate counter (Service Time: 3s)
+Person #8 done at Birth Certificate counter (Service Time: 3s)
+Person #10 is being served at Birth Certificate counter
+Person #14 requested ID Card with ticket #18
+Person #11 done at ID Card counter (Service Time: 3s)
+Person #13 is being served at ID Card counter
+Person #13 requested Death Certificate with ticket #19
+Person #13 is being served at Death Certificate counter
+Person #15 requested Death Certificate with ticket #20
+Person #16 requested Birth Certificate with ticket #21
+Person #13 done at ID Card counter (Service Time: 2s)
+Person #14 is being served at ID Card counter
+Person #14 requested Death Certificate with ticket #22
+Person #10 done at Birth Certificate counter (Service Time: 3s)
+Person #12 is being served at Birth Certificate counter
+Person #12 requested Death Certificate with ticket #23
+Person #17 requested ID Card with ticket #24
+Person #14 done at ID Card counter (Service Time: 1s)
+Person #17 is being served at ID Card counter
+Person #13 done at Death Certificate counter (Service Time: 3s)
+Person #15 is being served at Death Certificate counter
+Person #12 done at Birth Certificate counter (Service Time: 1s)
+Person #16 is being served at Birth Certificate counter
+Person #18 requested Death Certificate with ticket #25
+Person #15 done at Death Certificate counter (Service Time: 1s)
+Person #14 is being served at Death Certificate counter
+Person #19 requested Birth Certificate with ticket #26
+Person #17 done at ID Card counter (Service Time: 2s)
+Person #14 done at Death Certificate counter (Service Time: 1s)
+Person #12 is being served at Death Certificate counter
+Person #20 requested ID Card with ticket #27
+Person #20 is being served at ID Card counter
+Person #20 requested Death Certificate with ticket #28
+Person #16 done at Birth Certificate counter (Service Time: 3s)
+Person #19 is being served at Birth Certificate counter
+Person #19 requested ID Card with ticket #29
+Person #21 requested Birth Certificate with ticket #30
+Person #22 requested Birth Certificate with ticket #31
+Person #12 done at Death Certificate counter (Service Time: 3s)
+Person #18 is being served at Death Certificate counter
+Person #19 done at Birth Certificate counter (Service Time: 2s)
+Person #21 is being served at Birth Certificate counter
+Person #23 requested Birth Certificate with ticket #32
+Person #20 done at ID Card counter (Service Time: 3s)
+Person #19 is being served at ID Card counter
+Person #21 done at Birth Certificate counter (Service Time: 1s)
+Person #22 is being served at Birth Certificate counter
+Person #24 requested Birth Certificate with ticket #33
+Person #25 requested Birth Certificate with ticket #34
+Person #18 done at Death Certificate counter (Service Time: 3s)
+Person #20 is being served at Death Certificate counter
+Person #22 done at Birth Certificate counter (Service Time: 2s)
+Person #23 is being served at Birth Certificate counter
+Person #26 requested Birth Certificate with ticket #35
+Person #19 done at ID Card counter (Service Time: 3s)
+Person #20 done at Death Certificate counter (Service Time: 1s)
+Person #23 done at Birth Certificate counter (Service Time: 1s)
+Person #24 is being served at Birth Certificate counter
+Person #27 requested ID Card with ticket #36
+Person #27 is being served at ID Card counter
+Person #27 requested Death Certificate with ticket #37
+Person #27 is being served at Death Certificate counter
+Person #24 done at Birth Certificate counter (Service Time: 1s)
+Person #25 is being served at Birth Certificate counter
+Person #28 requested ID Card with ticket #38
+Person #25 done at Birth Certificate counter (Service Time: 1s)
+Person #26 is being served at Birth Certificate counter
+Person #29 requested Birth Certificate with ticket #39
+Person #26 done at Birth Certificate counter (Service Time: 1s)
+Person #29 is being served at Birth Certificate counter
+Person #30 requested ID Card with ticket #40
+Person #27 done at ID Card counter (Service Time: 3s)
+Person #28 is being served at ID Card counter
+Person #28 requested Death Certificate with ticket #41
+Person #27 done at Death Certificate counter (Service Time: 3s)
+Person #28 is being served at Death Certificate counter
+Person #31 requested Birth Certificate with ticket #42
+Person #29 done at Birth Certificate counter (Service Time: 2s)
+Person #31 is being served at Birth Certificate counter
+Person #32 requested Birth Certificate with ticket #43
+Person #31 done at Birth Certificate counter (Service Time: 1s)
+Person #32 is being served at Birth Certificate counter
+Person #33 requested Death Certificate with ticket #44
+Person #28 done at ID Card counter (Service Time: 3s)
+Person #30 is being served at ID Card counter
+Person #28 done at Death Certificate counter (Service Time: 3s)
+Person #33 is being served at Death Certificate counter
+Person #34 requested Birth Certificate with ticket #45
+Person #35 requested Birth Certificate with ticket #46
+Person #33 done at Death Certificate counter (Service Time: 2s)
+Person #32 done at Birth Certificate counter (Service Time: 3s)
+Person #34 is being served at Birth Certificate counter
+Person #34 requested ID Card with ticket #47
+Person #36 requested Death Certificate with ticket #48
+Person #36 is being served at Death Certificate counter
+Person #30 done at ID Card counter (Service Time: 3s)
+Person #34 is being served at ID Card counter
+Person #34 done at Birth Certificate counter (Service Time: 1s)
+Person #35 is being served at Birth Certificate counter
+Person #37 requested Death Certificate with ticket #49
+Person #38 requested Birth Certificate with ticket #50
+Person #36 done at Death Certificate counter (Service Time: 2s)
+Person #37 is being served at Death Certificate counter
+Person #35 done at Birth Certificate counter (Service Time: 2s)
+Person #38 is being served at Birth Certificate counter
+Person #38 requested Death Certificate with ticket #51
+Person #39 requested Birth Certificate with ticket #52
+Person #37 done at Death Certificate counter (Service Time: 1s)
+Person #38 is being served at Death Certificate counter
+Person #34 done at ID Card counter (Service Time: 3s)
+Person #38 done at Birth Certificate counter (Service Time: 1s)
+Person #39 is being served at Birth Certificate counter

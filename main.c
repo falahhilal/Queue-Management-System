@@ -5,6 +5,9 @@
 #include <time.h>
 #include <semaphore.h>
 
+FILE* logFile;
+pthread_mutex_t logMutex;
+
 #define NUM_PEOPLE 40
 #define NUM_COUNTERS 3
 
@@ -64,6 +67,10 @@ void* counterThread(void* arg) {
         if (queues[type] != NULL) {
             Person* p = front(queues[type]);
             printf("Person #%d is being served at %s counter\n", p->id, serviceNames[type]);
+            pthread_mutex_lock(&logMutex);
+            fprintf(logFile, "Person #%d is being served at %s counter\n", p->id, serviceNames[type]);
+            fflush(logFile);
+            pthread_mutex_unlock(&logMutex);
             sem_post(&p->sem);  // Wake up person
             pthread_mutex_unlock(&queueMutex[type]);
 
@@ -73,6 +80,10 @@ void* counterThread(void* arg) {
 
             pthread_mutex_lock(&queueMutex[type]);
             printf("Person #%d done at %s counter (Service Time: %ds)\n", p->id, serviceNames[type], serviceTime);
+            pthread_mutex_lock(&logMutex);
+            fprintf(logFile, "Person #%d done at %s counter (Service Time: %ds)\n", p->id, serviceNames[type], serviceTime);
+            fflush(logFile);
+            pthread_mutex_unlock(&logMutex);
             dequeue(&queues[type]);
             pthread_mutex_unlock(&queueMutex[type]);
 
@@ -100,8 +111,11 @@ void requestService(Person* p, ServiceType serviceType) {
 
     sem_init(&p->sem, 0, 0); 
     enqueue(&queues[serviceType], p);
-    printf("Person #%d requested %s with ticket #%d\n",
-           p->id, serviceNames[serviceType], p->ticketNo);
+    printf("Person #%d requested %s with ticket #%d\n", p->id, serviceNames[serviceType], p->ticketNo);
+    pthread_mutex_lock(&logMutex);
+    fprintf(logFile, "Person #%d requested %s with ticket #%d\n", p->id, serviceNames[serviceType], p->ticketNo);
+    fflush(logFile);
+    pthread_mutex_unlock(&logMutex);
 
     pthread_mutex_unlock(&queueMutex[serviceType]);
 
@@ -139,7 +153,15 @@ int main() {
     pthread_t counters[NUM_COUNTERS];
     srand(time(NULL));
     pthread_mutex_init(&ticketMutex, NULL);
+    
+    logFile = fopen("log.txt", "w");
+    if (!logFile) {
+      perror("Failed to open log file");
+      exit(1);
+    }
+    pthread_mutex_init(&logMutex, NULL);
 
+    
     for (int i = 0; i < NUM_COUNTERS; i++) {
         pthread_mutex_init(&queueMutex[i], NULL);
         ServiceType* arg = malloc(sizeof(ServiceType));
@@ -160,9 +182,16 @@ int main() {
     for (int i = 0; i < NUM_PEOPLE; i++) {
         pthread_join(people[i], NULL);
     }
+    
+    pthread_mutex_destroy(&logMutex);
+    fclose(logFile);
 
     // In production, you would use a proper signal to shut down counter threads
     printf("\nAll people have been served.\n");
+    pthread_mutex_lock(&logMutex);
+    fprintf(logFile, "\nAll people have been served.\n");
+    fflush(logFile);
+    pthread_mutex_unlock(&logMutex);
     return 0;
 }
 

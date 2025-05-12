@@ -10,6 +10,7 @@ typedef enum { ID_CARD, BIRTH_CERT, DEATH_CERT } ServiceType;
 const char* serviceNames[] = { "ID Card", "Birth Certificate", "Death Certificate" };
 
 typedef struct {
+    int id;
     int ticketNo;
     ServiceType service;
     pthread_cond_t cond;
@@ -61,8 +62,8 @@ void* personThread(void* arg) {
     p->isServed = 0;
     pthread_cond_init(&p->cond, NULL);
     enqueue(&queues[p->service], p);
-    printf("Person %d requested %s with ticket #%d\n", 
-           (int)pthread_self(), serviceNames[p->service], p->ticketNo);
+    printf("Person #%d requested %s with ticket #%d\n", 
+       p->id, serviceNames[p->service], p->ticketNo);
 
     //wait
     while (front(queues[p->service]) != p) {
@@ -71,13 +72,14 @@ void* personThread(void* arg) {
 
     //at counter
     printf("Person #%d is being served at %s counter\n", 
-           p->ticketNo, serviceNames[p->service]);
+       p->id, serviceNames[p->service]);
     pthread_mutex_unlock(&queueMutex[p->service]);
 
     sleep(1); //service time
 
     pthread_mutex_lock(&queueMutex[p->service]);
-    printf("Person #%d done at %s counter\n", p->ticketNo, serviceNames[p->service]);
+    printf("Person #%d done at %s counter\n", 
+       p->id, serviceNames[p->service]);
     dequeue(&queues[p->service]);
     //notify next person in the queue
     if (queues[p->service]) {
@@ -99,6 +101,7 @@ int main() {
 
     for (int i = 0; i < NUM_PEOPLE; i++) {
         Person* p = malloc(sizeof(Person));
+        p->id = i;
         p->service = rand() % NUM_COUNTERS;
         pthread_create(&people[i], NULL, personThread, p);
         sleep(1);

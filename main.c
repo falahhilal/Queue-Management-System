@@ -10,6 +10,7 @@ pthread_mutex_t logMutex;
 
 #define NUM_PEOPLE 40
 #define NUM_COUNTERS 3
+#define QUEUE_CAPACITY 5 //max people allowed in queue per counter
 
 typedef enum { ID_CARD, BIRTH_CERT, DEATH_CERT } ServiceType;
 const char* serviceNames[] = { "ID Card", "Birth Certificate", "Death Certificate" };
@@ -32,6 +33,8 @@ typedef struct Node {
 Node* queues[NUM_COUNTERS] = { NULL };
 pthread_mutex_t queueMutex[NUM_COUNTERS];
 pthread_mutex_t ticketMutex;
+sem_t queueSem[NUM_COUNTERS]; //sem to limit queue size
+
 int ticketCounter = 0;
 
 void enqueue(Node** head, Person* p) {
@@ -91,6 +94,7 @@ void* counterThread(void* arg) {
             if (type == BIRTH_CERT) p->hasBirthCertificate = 1;
             if (type == ID_CARD)    p->hasIDCard = 1;
 
+            sem_post(&queueSem[type]); //dequeued so now add free spot
             sem_destroy(&p->sem);
         } else {
             pthread_mutex_unlock(&queueMutex[type]);
@@ -101,6 +105,9 @@ void* counterThread(void* arg) {
 }
 
 void requestService(Person* p, ServiceType serviceType) {
+    //wait for space in queue
+    sem_wait(&queueSem[serviceType]);
+
     pthread_mutex_lock(&queueMutex[serviceType]);
 
     pthread_mutex_lock(&ticketMutex);
@@ -164,6 +171,8 @@ int main() {
     
     for (int i = 0; i < NUM_COUNTERS; i++) {
         pthread_mutex_init(&queueMutex[i], NULL);
+        sem_init(&queueSem[i], 0, QUEUE_CAPACITY);
+
         ServiceType* arg = malloc(sizeof(ServiceType));
         *arg = i;
         pthread_create(&counters[i], NULL, counterThread, arg);
@@ -182,7 +191,13 @@ int main() {
     for (int i = 0; i < NUM_PEOPLE; i++) {
         pthread_join(people[i], NULL);
     }
-    
+
+    for (int i = 0; i < NUM_COUNTERS; i++) {
+        sem_destroy(&queueSem[i]); 
+        pthread_mutex_destroy(&queueMutex[i]); 
+    }
+
+    pthread_mutex_destroy(&ticketMutex); 
     pthread_mutex_destroy(&logMutex);
     fclose(logFile);
 

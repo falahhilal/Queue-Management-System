@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
+#include <semaphore.h>
 
 #define NUM_PEOPLE 40
 #define NUM_COUNTERS 3
@@ -14,6 +15,7 @@ typedef struct {      //person
     int id;
     int ticketNo;
     ServiceType service;
+    sem_t sem;             //semaphore for each person
     pthread_cond_t cond;
     int isServed;
     int hasBirthCertificate;   // flag to track if person already has birth certificate
@@ -28,8 +30,9 @@ typedef struct Node {        //for queue
 //1 queue for each counter
 Node* queues[NUM_COUNTERS] = { NULL };
 pthread_mutex_t queueMutex[NUM_COUNTERS];
-pthread_cond_t queueCond[NUM_COUNTERS];    
+pthread_mutex_t ticketMutex;
 int ticketCounter = 0;
+
 
 void enqueue(Node** head, Person* p) {          //adds person to a queue
     Node* newNode = malloc(sizeof(Node));
@@ -59,16 +62,26 @@ void dequeue(Node** head) {                   //when service is done remove them
 void requestService(Person* p, ServiceType serviceType) {
     //give ticket and join queue
     pthread_mutex_lock(&queueMutex[serviceType]);
+
+    pthread_mutex_lock(&ticketMutex);
     p->ticketNo = ticketCounter++;
+    pthread_mutex_unlock(&ticketMutex);
+
     p->isServed = 0;
-    pthread_cond_init(&p->cond, NULL);
+
+    sem_init(&p->sem, 0, 0); //initilize sem of this person
+    //start at 0 so thread will block on wait
+   
     enqueue(&queues[serviceType], p);
     printf("Person #%d requested %s with ticket #%d\n",
            p->id, serviceNames[serviceType], p->ticketNo);
 
     //wait
     while (front(queues[serviceType]) != p) {
-        pthread_cond_wait(&p->cond, &queueMutex[serviceType]);           //wait condition until person is at front
+        //wait condition until person is at front
+        pthread_mutex_unlock(&queueMutex[serviceType]);   // Release lock before waiting
+        sem_wait(&p->sem);                                // Wait to be served
+        pthread_mutex_lock(&queueMutex[serviceType]);     // Reacquire lock to check again
     }
 
     //at counter
@@ -84,13 +97,15 @@ void requestService(Person* p, ServiceType serviceType) {
     dequeue(&queues[serviceType]);
     //notify next person in the queue
     if (queues[serviceType]) {
-        pthread_cond_signal(&queues[serviceType]->person->cond);       //informing the person in front
+        sem_post(&queues[serviceType]->person->sem); //wake up next person
     }
     pthread_mutex_unlock(&queueMutex[serviceType]);
 
     //set flags
     if (serviceType == BIRTH_CERT) p->hasBirthCertificate = 1;
     if (serviceType == ID_CARD)    p->hasIDCard = 1;
+   
+    sem_destroy(&p->sem);
 }
 
 void* personThread(void* arg) {
@@ -126,10 +141,10 @@ void* personThread(void* arg) {
 int main() {
     pthread_t people[NUM_PEOPLE];
     srand(time(NULL));
+    pthread_mutex_init(&ticketMutex, NULL);
 
     for (int i = 0; i < NUM_COUNTERS; i++) {           //initialization
         pthread_mutex_init(&queueMutex[i], NULL);
-        pthread_cond_init(&queueCond[i], NULL);
     }
 
     for (int i = 0; i < NUM_PEOPLE; i++) {          

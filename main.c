@@ -11,30 +11,27 @@
 typedef enum { ID_CARD, BIRTH_CERT, DEATH_CERT } ServiceType;
 const char* serviceNames[] = { "ID Card", "Birth Certificate", "Death Certificate" };
 
-typedef struct {      //person
+typedef struct {
     int id;
     int ticketNo;
     ServiceType service;
-    sem_t sem;             //semaphore for each person
-    pthread_cond_t cond;
+    sem_t sem;             
     int isServed;
-    int hasBirthCertificate;   // flag to track if person already has birth certificate
-    int hasIDCard;             // flag to track if person already has ID card
+    int hasBirthCertificate;
+    int hasIDCard;
 } Person;
 
-typedef struct Node {        //for queue
+typedef struct Node {
     Person* person;
     struct Node* next;
 } Node;
 
-//1 queue for each counter
 Node* queues[NUM_COUNTERS] = { NULL };
 pthread_mutex_t queueMutex[NUM_COUNTERS];
 pthread_mutex_t ticketMutex;
 int ticketCounter = 0;
 
-
-void enqueue(Node** head, Person* p) {          //adds person to a queue
+void enqueue(Node** head, Person* p) {
     Node* newNode = malloc(sizeof(Node));
     newNode->person = p;
     newNode->next = NULL;
@@ -48,19 +45,51 @@ void enqueue(Node** head, Person* p) {          //adds person to a queue
     temp->next = newNode;
 }
 
-Person* front(Node* head) {                    //to get the next person in queue
+Person* front(Node* head) {
     return head ? head->person : NULL;
 }
 
-void dequeue(Node** head) {                   //when service is done remove them from queue
+void dequeue(Node** head) {
     if (*head == NULL) return;
     Node* temp = *head;
     *head = (*head)->next;
     free(temp);
 }
 
+void* counterThread(void* arg) {
+    ServiceType type = *(ServiceType*)arg;
+    while (1) {
+        pthread_mutex_lock(&queueMutex[type]);
+
+        if (queues[type] != NULL) {
+            Person* p = front(queues[type]);
+            printf("Person #%d is being served at %s counter\n", p->id, serviceNames[type]);
+            sem_post(&p->sem);  // Wake up person
+            pthread_mutex_unlock(&queueMutex[type]);
+
+            int serviceTime = rand() % 3 + 1;  // 1 to 3 seconds
+            //int serviceTime = 2;
+            sleep(serviceTime);
+
+            pthread_mutex_lock(&queueMutex[type]);
+            printf("Person #%d done at %s counter (Service Time: %ds)\n", p->id, serviceNames[type], serviceTime);
+            dequeue(&queues[type]);
+            pthread_mutex_unlock(&queueMutex[type]);
+
+            // set flags
+            if (type == BIRTH_CERT) p->hasBirthCertificate = 1;
+            if (type == ID_CARD)    p->hasIDCard = 1;
+
+            sem_destroy(&p->sem);
+        } else {
+            pthread_mutex_unlock(&queueMutex[type]);
+            usleep(100000); // avoid busy waiting (100ms)
+        }
+    }
+    return NULL;
+}
+
 void requestService(Person* p, ServiceType serviceType) {
-    //give ticket and join queue
     pthread_mutex_lock(&queueMutex[serviceType]);
 
     pthread_mutex_lock(&ticketMutex);
@@ -69,49 +98,19 @@ void requestService(Person* p, ServiceType serviceType) {
 
     p->isServed = 0;
 
-    sem_init(&p->sem, 0, 0); //initilize sem of this person
-    //start at 0 so thread will block on wait
-   
+    sem_init(&p->sem, 0, 0); 
     enqueue(&queues[serviceType], p);
     printf("Person #%d requested %s with ticket #%d\n",
            p->id, serviceNames[serviceType], p->ticketNo);
 
-    //wait
-    while (front(queues[serviceType]) != p) {
-        //wait condition until person is at front
-        pthread_mutex_unlock(&queueMutex[serviceType]);   // Release lock before waiting
-        sem_wait(&p->sem);                                // Wait to be served
-        pthread_mutex_lock(&queueMutex[serviceType]);     // Reacquire lock to check again
-    }
-
-    //at counter
-    printf("Person #%d is being served at %s counter\n",
-           p->id, serviceNames[serviceType]);
     pthread_mutex_unlock(&queueMutex[serviceType]);
 
-    sleep(1); //service time
-
-    pthread_mutex_lock(&queueMutex[serviceType]);
-    printf("Person #%d done at %s counter\n",
-           p->id, serviceNames[serviceType]);
-    dequeue(&queues[serviceType]);
-    //notify next person in the queue
-    if (queues[serviceType]) {
-        sem_post(&queues[serviceType]->person->sem); //wake up next person
-    }
-    pthread_mutex_unlock(&queueMutex[serviceType]);
-
-    //set flags
-    if (serviceType == BIRTH_CERT) p->hasBirthCertificate = 1;
-    if (serviceType == ID_CARD)    p->hasIDCard = 1;
-   
-    sem_destroy(&p->sem);
+    sem_wait(&p->sem); // wait to be served
 }
 
 void* personThread(void* arg) {
     Person* p = (Person*)arg;
 
-    //check conditions
     if (p->service == ID_CARD && !p->hasBirthCertificate) {
         printf("Person #%d wants an ID Card but doesn't have a Birth Certificate.\n", p->id);
         printf("Redirecting Person #%d to Birth Certificate counter first.\n", p->id);
@@ -127,39 +126,43 @@ void* personThread(void* arg) {
         if (!p->hasIDCard) {
             printf("Person #%d wants a Death Certificate but doesn't have an ID Card.\n", p->id);
             printf("Redirecting Person #%d to ID Card counter first.\n", p->id);
-            // ID Card requires birth cert too, but by now it's already ensured
             requestService(p, ID_CARD);
         }
     }
 
-    //finally request the original service
     requestService(p, p->service);
-
     pthread_exit(NULL);
 }
 
 int main() {
     pthread_t people[NUM_PEOPLE];
+    pthread_t counters[NUM_COUNTERS];
     srand(time(NULL));
     pthread_mutex_init(&ticketMutex, NULL);
 
-    for (int i = 0; i < NUM_COUNTERS; i++) {           //initialization
+    for (int i = 0; i < NUM_COUNTERS; i++) {
         pthread_mutex_init(&queueMutex[i], NULL);
+        ServiceType* arg = malloc(sizeof(ServiceType));
+        *arg = i;
+        pthread_create(&counters[i], NULL, counterThread, arg);
     }
 
-    for (int i = 0; i < NUM_PEOPLE; i++) {          
+    for (int i = 0; i < NUM_PEOPLE; i++) {
         Person* p = malloc(sizeof(Person));
         p->id = i;
         p->service = rand() % NUM_COUNTERS;
-        p->hasBirthCertificate = rand() % 2;  //randomly assign if they already have a birth certificate
-        p->hasIDCard = rand() % 2;           //randomly assign if they already have an ID card
+        p->hasBirthCertificate = rand() % 2;
+        p->hasIDCard = rand() % 2;
         pthread_create(&people[i], NULL, personThread, p);
-        sleep(1);
+        sleep(1); // space out arrival times
     }
 
-    for (int i = 0; i < NUM_PEOPLE; i++) {   //join all threads
+    for (int i = 0; i < NUM_PEOPLE; i++) {
         pthread_join(people[i], NULL);
     }
 
+    // In production, you would use a proper signal to shut down counter threads
+    printf("\nAll people have been served.\n");
     return 0;
 }
+

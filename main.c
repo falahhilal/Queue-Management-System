@@ -201,7 +201,7 @@ int main() {
     pthread_mutex_destroy(&logMutex);
     fclose(logFile);
 
-    // In production, you would use a proper signal to shut down counter threads
+    // In production you would use a proper signal to shut down counter threads
     printf("\nAll people have been served.\n");
     pthread_mutex_lock(&logMutex);
     fprintf(logFile, "\nAll people have been served.\n");
@@ -209,4 +209,3 @@ int main() {
     pthread_mutex_unlock(&logMutex);
     return 0;
 }
-
